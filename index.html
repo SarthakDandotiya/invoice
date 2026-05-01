@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Invoice</title>
+
+    <style>
+      html {
+        /* Chrome, Safari, Edge */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+
+        /* Firefox */
+        input[type="number"] {
+          -moz-appearance: textfield;
+        }
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 10px;
+        background: #cbe2ff;
+        font-size: 14px;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+      }
+
+      h1 {
+        margin: 0;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        border: none;
+        border-bottom: 1px solid #ccc;
+        margin-bottom: 8px;
+        font-size: 12px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid black;
+      }
+
+      th,
+      td {
+        padding: 6px;
+      }
+
+      .right {
+        text-align: right;
+      }
+
+      .footer {
+        text-align: left;
+        margin-top: 20px;
+      }
+
+      button {
+        padding: 10px;
+        margin-top: 10px;
+        width: 100%;
+      }
+
+      /* A4 PRINT */
+      @media print {
+        body {
+          background: white;
+        }
+
+        .container {
+          width: 210mm;
+          min-height: 297mm;
+          padding: 20mm;
+          margin: 0;
+        }
+
+        input,
+        textarea {
+          border: none !important;
+          outline: none !important;
+          pointer-events: none;
+        }
+
+        button {
+          display: none;
+        }
+      }
+
+      /* MOBILE */
+      @media (max-width: 600px) {
+        .container {
+          padding: 10px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="top"></div>
+      <h1>INVOICE</h1>
+      <br />
+
+      Date:
+      <br />
+      <input id="date" />
+
+      Invoice No.:
+      <input id="invoiceNo" />
+
+      <hr />
+
+      Name:
+      <input id="name" />
+
+      Address:
+      <textarea id="address"></textarea>
+
+      PAN:
+      <input id="pan" />
+
+      GST No.:
+      <input id="gst" />
+
+      <hr />
+
+      <h3>Bill To</h3>
+
+      Name:
+      <input id="billName" />
+
+      Address:
+      <textarea id="billAddress"></textarea>
+
+      GSTIN:
+      <input id="billGst" />
+
+      <hr />
+
+      <h3>Items</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Quantity</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody id="itemsBody"></tbody>
+      </table>
+
+      <button onclick="addRow()">Add Row</button>
+
+      <div class="left">
+        <strong>Total</strong>
+        ₹ <span id="total">0</span><br />
+      </div>
+
+      <br />
+
+      <strong>Total (in words):</strong>
+      <input id="totalWords" />
+
+      <hr />
+
+      <h3>Payment Details</h3>
+
+      Beneficiary Name:
+      <input id="beneficiary" />
+
+      Bank Name:
+      <input id="bank" />
+
+      Bank Account No.:
+      <input id="account" />
+
+      IFSC Code:
+      <input id="ifsc" />
+
+      <hr />
+
+      <div class="footer">
+        Email:
+        <input id="email" />
+        Instagram:
+        <input id="instagram" />
+      </div>
+
+      <button onclick="saveData()">Save</button>
+      <button onclick="generatePDF()">Export PDF</button>
+    </div>
+
+    <script>
+      // AUTO DATE
+      document.getElementById("date").value = new Date()
+        .toISOString()
+        .split("T")[0];
+
+      // INVOICE NUMBER
+      let lastInvoice = localStorage.getItem("invoiceNo") || 0;
+      lastInvoice++;
+      document.getElementById("invoiceNo").value = lastInvoice;
+
+      // ADD ROW
+      function addRow() {
+        let row = `
+    <tr>
+        <td><input></td>
+        <td><input type="number" oninput="calculateTotal()"></td>
+        <td><input type="number" oninput="calculateTotal()"></td>
+    </tr>`;
+        document
+          .getElementById("itemsBody")
+          .insertAdjacentHTML("beforeend", row);
+      }
+
+      // CALCULATE TOTAL
+      function calculateTotal() {
+        let rows = document.querySelectorAll("#itemsBody tr");
+        let total = 0;
+
+        rows.forEach((row) => {
+          let qty = row.children[1].children[0].value || 0;
+          let price = row.children[2].children[0].value || 0;
+          total += qty * price;
+        });
+
+        document.getElementById("total").innerText = total;
+        document.getElementById("totalWords").value = numberToWords(total);
+      }
+
+      // NUMBER TO WORDS (INDIAN)
+      function numberToWords(num) {
+        if (num === 0) return "Zero Rupees only.";
+
+        const ones = [
+          "",
+          "One",
+          "Two",
+          "Three",
+          "Four",
+          "Five",
+          "Six",
+          "Seven",
+          "Eight",
+          "Nine",
+          "Ten",
+          "Eleven",
+          "Twelve",
+          "Thirteen",
+          "Fourteen",
+          "Fifteen",
+          "Sixteen",
+          "Seventeen",
+          "Eighteen",
+          "Nineteen",
+        ];
+
+        const tens = [
+          "",
+          "",
+          "Twenty",
+          "Thirty",
+          "Forty",
+          "Fifty",
+          "Sixty",
+          "Seventy",
+          "Eighty",
+          "Ninety",
+        ];
+
+        function convert(n) {
+          let str = "";
+
+          if (n >= 100) {
+            str += ones[Math.floor(n / 100)] + " Hundred ";
+            n %= 100;
+            if (n) str += "and ";
+          }
+
+          if (n >= 20) {
+            str += tens[Math.floor(n / 10)] + " ";
+            n %= 10;
+          }
+
+          if (n > 0) {
+            str += ones[n] + " ";
+          }
+
+          return str.trim();
+        }
+
+        let result = "";
+
+        if (num >= 10000000) {
+          result += convert(Math.floor(num / 10000000)) + " Crore ";
+          num %= 10000000;
+        }
+
+        if (num >= 100000) {
+          result += convert(Math.floor(num / 100000)) + " Lakh ";
+          num %= 100000;
+        }
+
+        if (num >= 1000) {
+          result += convert(Math.floor(num / 1000)) + " Thousand ";
+          num %= 1000;
+        }
+
+        if (num > 0) {
+          result += convert(num);
+        }
+
+        return result.trim() + " Rupees only.";
+      }
+
+      // SAVE DATA
+      function saveData() {
+        let fields = [
+          "name",
+          "address",
+          "pan",
+          "gst",
+          "beneficiary",
+          "bank",
+          "account",
+          "ifsc",
+          "email",
+          "instagram",
+        ];
+        fields.forEach((id) => {
+          localStorage.setItem(id, document.getElementById(id).value);
+        });
+
+        localStorage.setItem(
+          "invoiceNo",
+          document.getElementById("invoiceNo").value,
+        );
+      }
+
+      // LOAD DATA
+      window.onload = function () {
+        let fields = [
+          "name",
+          "address",
+          "pan",
+          "gst",
+          "beneficiary",
+          "bank",
+          "account",
+          "ifsc",
+          "email",
+          "instagram",
+        ];
+        fields.forEach((id) => {
+          if (localStorage.getItem(id)) {
+            document.getElementById(id).value = localStorage.getItem(id);
+          }
+        });
+
+        addRow();
+      };
+
+      // EXPORT PDF
+      function generatePDF() {
+        localStorage.setItem(
+          "invoiceNo",
+          document.getElementById("invoiceNo").value,
+        );
+        window.print();
+      }
+    </script>
+  </body>
+</html>
