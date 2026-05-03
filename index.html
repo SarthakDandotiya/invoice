@@ -41,10 +41,17 @@
       input,
       textarea {
         width: 100%;
+        box-sizing: border-box;
         border: none;
         border-bottom: 1px solid #ccc;
         margin-bottom: 8px;
         font-size: 12px;
+        font-family: inherit;
+      }
+
+      td textarea {
+        resize: vertical;
+        margin-bottom: 0;
       }
 
       table {
@@ -159,9 +166,9 @@
       <table>
         <thead>
           <tr>
-            <th>Description</th>
-            <th>Quantity</th>
-            <th>Price</th>
+            <th style="width:50%">Description</th>
+            <th style="width:20%">Quantity</th>
+            <th style="width:30%">Price</th>
           </tr>
         </thead>
         <tbody id="itemsBody"></tbody>
@@ -169,12 +176,11 @@
 
       <button onclick="addRow()">Add Row</button>
 
-      <div class="left">
-        <strong>Total</strong>
-        ₹ <span id="total">0</span><br />
+      <div style="display:flex;justify-content:flex-end;margin-top:10px;margin-bottom:4px;">
+        <div style="width:30%;text-align:right;padding-right:6px;">
+          <strong>Total: ₹ <span id="total">0</span></strong>
+        </div>
       </div>
-
-      <br />
 
       <strong>Total (in words):</strong>
       <input id="totalWords" />
@@ -223,7 +229,7 @@
       function addRow() {
         let row = `
     <tr>
-        <td><input></td>
+        <td><textarea rows="1"></textarea></td>
         <td><input type="number" oninput="calculateTotal()"></td>
         <td><input type="number" oninput="calculateTotal()"></td>
     </tr>`;
