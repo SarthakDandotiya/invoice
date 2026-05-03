@@ -382,6 +382,9 @@
           }
         });
 
+        const bg = localStorage.getItem("bgColor");
+        if (bg) document.body.style.background = bg;
+
         addRow();
       };
 
